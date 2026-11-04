@@ -61,11 +61,11 @@ df = get_live_data(symbol=stock)
 
 if "datetime" in df.columns:
     df["datetime"] = pd.to_datetime(df["datetime"])
-    df.set_index("datetime", inplace=True)
+    df = df.set_index("datetime")
 
 elif "date" in df.columns:
     df["date"] = pd.to_datetime(df["date"])
-    df.set_index("date", inplace=True)
+    df = df.set_index("date")
 
 else:
     st.write(df.columns)
@@ -83,8 +83,8 @@ df["RSI"] = calculate_rsi(df, RSI_LENGTH)
 
 if strategy_choice == "Compare All Strategies":
     
-    comparison_df = compare_all_strategies(df)
-    st.write(comparison_df)
+    comparison_df, confusion_matrices = compare_all_strategies(df)
+   
 
     st.subheader(" Strategy Comparison")
     st.dataframe(comparison_df)
@@ -133,7 +133,81 @@ if strategy_choice == "Compare All Strategies":
     st.bar_chart(
         comparison_df.set_index("Strategy")["Max Drawdown"]
     )
+        # --------------------------------------------------
+    # Separate Confusion Matrix Heatmap
+    # --------------------------------------------------
 
+    st.markdown("---")
+    st.subheader("Confusion Matrix Analysis")
+
+    selected_strategy = st.selectbox(
+        "Select Strategy",
+        list(confusion_matrices.keys())
+    )
+
+    cm = confusion_matrices[selected_strategy]
+
+    if len(cm) == 2 and len(cm[0]) == 2:
+
+        
+
+        matrix_data = [
+            [cm[0][0], cm[0][1]],  # FN, TP
+            [cm[1][0], cm[1][1]]   # TN, FP
+        ]
+
+        cell_labels = [
+            [
+                f"FN: {cm[1][0]}",
+                f"TP: {cm[1][1]}"
+            ],
+            [
+                f"TN: {cm[0][0]}",
+                f"FP: {cm[0][1]}"
+            ]
+        ]
+        cell_labels = [
+        [f"TN: {cm[0][0]}", f"FP: {cm[0][1]}"],
+        [f"FN: {cm[1][0]}", f"TP: {cm[1][1]}"]
+    ]
+        fig = go.Figure(
+            data=go.Heatmap(
+                z=matrix_data,
+
+                x=[
+                    "Predicted: No Buy (0)",
+                    "Predicted: Buy (1)"
+                ],
+
+                y=[
+                    "Actual: No Price Up (0)",
+                    "Actual: Price Up (1)"
+                ],
+
+                text=cell_labels,
+                texttemplate="%{text}",
+                textfont=dict(size=18),
+                colorscale="Blues",
+                showscale=True
+            )
+        )
+
+        fig.update_layout(
+            title=f"Confusion Matrix - {selected_strategy}",
+            xaxis_title="Predicted Values",
+            yaxis_title="Actual Values",
+            height=450,
+            template="plotly_white"
+        )
+        fig.update_yaxes(autorange="reversed")
+        st.plotly_chart(
+            fig,
+            width="stretch"
+        )
+
+        st.write("Total observations:", sum(sum(row) for row in cm))
+    else:
+        st.warning("Confusion matrix must be a 2 × 2 matrix.")
     comparison_df["Score"] = (
         comparison_df["Total Profit"] * 0.5 +
         comparison_df["Sharpe Ratio"] * 0.3 -

@@ -1,3 +1,4 @@
+
 import pandas as pd
 
 from strategies.rsi_strategy import generate_signals as rsi_signals
@@ -5,10 +6,11 @@ from strategies.ema_strategy import generate_signals as ema_signals
 from strategies.sma_strategy import generate_signals as sma_signals
 from strategies.macd_strategy import generate_signals as macd_signals
 from strategies.stochastic_strategy import generate_signals as stochastic_signals
-from evaluation import evaluate_classification
 
+from evaluation import evaluate_classification
 from backtest import backtest
 from metrics import evaluate_metrics
+
 
 def compare_all_strategies(df):
 
@@ -21,6 +23,7 @@ def compare_all_strategies(df):
     }
 
     results = []
+    confusion_matrices = {}
 
     for strategy_name, strategy_function in strategies.items():
 
@@ -29,23 +32,30 @@ def compare_all_strategies(df):
         temp_df = strategy_function(temp_df)
 
         total_profit, trades = backtest(temp_df)
-
         metrics = evaluate_metrics(trades)
         classification = evaluate_classification(temp_df)
 
-        results.append({
-    "Strategy": strategy_name,
-    "Accuracy (%)": round(classification["accuracy"] * 100, 2),
-    "Precision": round(classification["precision"], 2),
-    "Recall": round(classification["recall"], 2),
-    "Sensitivity": round(classification["sensitivity"], 2),
-    "F1-Score": round(classification["f1_score"], 2),
-    "AUC": round(classification["auc"], 2),
-    "Total Profit": round(metrics["total_profit"], 2),
-    "Total Trades": metrics["total_trades"],
-    "Sharpe Ratio": round(metrics["sharpe_ratio"], 2),
-    "Max Drawdown": round(metrics["max_drawdown"], 2),
-    "Confusion Matrix": str(classification["confusion_matrix"])
-})
+        # Store actual confusion matrix separately
+        confusion_matrices[strategy_name] = (
+            classification["confusion_matrix"].tolist()
+            if hasattr(classification["confusion_matrix"], "tolist")
+            else classification["confusion_matrix"]
+        )
 
-    return pd.DataFrame(results)
+        results.append({
+            "Strategy": strategy_name,
+            "Accuracy (%)": round(classification["accuracy"] * 100, 2),
+            "Precision": round(classification["precision"], 2),
+            "Recall": round(classification["recall"], 2),
+            "Sensitivity": round(classification["sensitivity"], 2),
+            "F1-Score": round(classification["f1_score"], 2),
+            "AUC": round(classification["auc"], 2),
+            "Total Profit": round(metrics["total_profit"], 2),
+            "Total Trades": metrics["total_trades"],
+            "Sharpe Ratio": round(metrics["sharpe_ratio"], 2),
+            "Max Drawdown": round(metrics["max_drawdown"], 2)
+        })
+
+    comparison_df = pd.DataFrame(results)
+
+    return comparison_df, confusion_matrices
