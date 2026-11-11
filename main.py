@@ -2,7 +2,7 @@ import pandas as pd
 
 from config import RSI_LENGTH
 from indicators import calculate_rsi
-from strategy import generate_signals
+from strategies.rsi_strategy import generate_signals
 from backtest import backtest
 from metrics import evaluate_metrics
 from visualize import visualize_trades

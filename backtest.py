@@ -1,9 +1,10 @@
-from database import create_database, save_trade
+from database import create_database, save_trade, clear_trades
 
 
 def backtest(df):
 
     create_database()
+    clear_trades()
 
     position = 0
     entry_price = 0
@@ -31,7 +32,7 @@ def backtest(df):
 
 
         # STOP LOSS CHECK
-        elif position == 1 and df["close"].iloc[i] <= stop_loss:
+        elif position == 1 and df["low"].iloc[i] <= stop_loss:
 
             exit_price = next_open
 
@@ -103,6 +104,13 @@ def backtest(df):
             "exit": exit_price,
             "profit": profit
         })
+
+        save_trade(
+            buy_price=float(entry_price),
+            sell_price=float(exit_price),
+            profit=float(profit),
+            trade_time=str(df.index[-1])
+        )
 
 
     return total_profit, trades

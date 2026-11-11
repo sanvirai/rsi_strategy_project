@@ -47,7 +47,7 @@ def evaluate_metrics(trades):
     std_profit = np.std(profits)
 
     sharpe_ratio = (
-        (np.mean(profits) / std_profit) * np.sqrt(252)
+        (np.mean(profits) / std_profit) * np.sqrt(252 * 26)
         if std_profit != 0 else 0
     )
 
@@ -58,7 +58,7 @@ def evaluate_metrics(trades):
 
     peak = np.maximum.accumulate(equity)
 
-    drawdown = ((equity - peak) / peak) * 100
+    drawdown = equity - peak
 
     max_drawdown = abs(min(drawdown)) if len(drawdown) else 0
 

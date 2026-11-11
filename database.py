@@ -19,7 +19,13 @@ def create_database():
 
     conn.commit()
     conn.close()
+def clear_trades():
 
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM trades")
+    conn.commit()
+    conn.close()
 
 def save_trade(buy_price, sell_price, profit, trade_time):
 

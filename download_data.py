@@ -19,12 +19,12 @@ for name, ticker in stocks.items():
 
     df = yf.download(
         ticker,
-        interval="1m",
-        period="5d",
+        interval="15m",
+        period="1mo",
         group_by="column"
     )
 
-    if isinstance(df.columns, type(yf.download("RELIANCE.NS", period="1d").columns)):
+    if isinstance(df.columns, type(yf.download("RELIANCE.NS", period="1mo").columns)):
         try:
             df.columns = df.columns.get_level_values(0)
         except:

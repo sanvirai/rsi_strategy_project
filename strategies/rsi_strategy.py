@@ -11,19 +11,15 @@ def generate_signals(df):
     df["high_volume"] = df["volume"] > df["volume_ma"]
 
     df['rsi_up'] = df['RSI'] > df['RSI'].shift(1)
-
-    df['rsi_up'] = df['RSI'] > df['RSI'].shift(1)
     df['rsi_down'] = df['RSI'] < df['RSI'].shift(1)
 
     df['buy_raw'] = (
-    (df['RSI'] < OVERSOLD) &
     df['rsi_up'] &
     df['high_volume'] &
     (df['RSI'] <= OVERSOLD + (OVERSOLD * BUFFER_PERCENT / 100))
     )
     
     df['sell_raw'] = (
-    (df['RSI'] > OVERBOUGHT) &
     df['rsi_down'] &
     df['high_volume'] &
     (df['RSI'] >= OVERBOUGHT - (OVERBOUGHT * BUFFER_PERCENT / 100))
